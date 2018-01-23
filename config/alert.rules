@@ -1,0 +1,23 @@
+
+groups:
+    - name: example1
+      rules:
+          - alert: HighCpuRate-it-team
+            expr: 100 - (avg by (cpu) (irate(node_cpu{mode="idle", instance=~"node_exporter:9100"}[1s])) * 100) > 90
+            for: 10s
+            labels:
+                alertname: test-alert
+                incharge: it-team
+            annotations:
+                summary: More than 90% CPU uage.
+
+          - alert: Test
+            expr: line_count > 1
+            labels:
+                alertname: test-alert
+                incharge: it-team
+            annotations:
+                summary: Test alert.
+
+
+

@@ -1,0 +1,25 @@
+receivers:
+    - name: "default_receiver"
+    - name: "email_receiver"
+      email_configs:
+          - to: ${EMAIL_ADDR}
+            from: ${EMAIL_ADDR}
+            smarthost: smtp.gmail.com:587
+            auth_username: ${EMAIL_ADDR}
+            auth_password: ${EMAIL_PASSWD}
+            auth_secret: ${EMAIL_ADDR}
+            auth_identity: ${EMAIL_ADDR}
+            require_tls: true
+
+route:
+    receiver: "default_receiver"
+    group_wait: 1s
+    group_interval: 1m
+    repeat_interval: 3m
+    group_by: [alertname]
+
+    routes:
+        - receiver: "email_receiver"
+          match:
+              incharge: it-team
+

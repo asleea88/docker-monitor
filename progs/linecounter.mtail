@@ -1,0 +1,4 @@
+counter line_count
+/$/ {
+  line_count++
+}

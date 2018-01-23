@@ -1,0 +1,125 @@
+version: '3.4'
+
+
+networks:
+    prometheus_network:
+        driver: bridge
+
+
+volumes:
+    prometheus_volume:
+    grafana_volume:
+
+
+services:
+
+    prometheus:
+        image: prom/prometheus:latest
+        command: [
+            "--config.file=/etc/prometheus/prometheus.yml",
+            "--storage.tsdb.retention=3d",
+            "--web.enable-lifecycle"
+            ]
+        container_name: promehteus
+
+        networks:
+            prometheus_network:
+
+        ports:
+            - published: 9090
+              target: 9090
+              protocol: tcp
+
+        volumes:
+            - type: volume
+              source: prometheus_volume
+              target: /prometheus
+            - type: bind
+              target: /etc/prometheus
+              source: ./config
+
+    node_exporter:
+        image: prom/node-exporter:latest
+        container_name: node_exporter
+
+        networks:
+            prometheus_network:
+
+    cadvisor:
+        image: google/cadvisor:latest
+        container_name: cadvisor
+
+        networks:
+            prometheus_network:
+
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:rw
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+
+    alertmanager:
+        image: prom/alertmanager
+        command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager", "--log.level=debug"]
+        container_name: alertmanager
+
+        depends_on:
+            - prometheus
+
+        networks:
+            prometheus_network:
+
+        ports:
+            - published: 9093
+              target: 9093
+              protocol: tcp
+
+        volumes:
+            - type: bind
+              source: ./config
+              target: /etc/alertmanager
+
+    mtail:
+        image: jaymedh/docker-mtail
+        command: ["--progs", "/progs", "--logs", "/home/test1.log,/home/test2.log"]
+        container_name: mtail
+
+        networks:
+            prometheus_network:
+
+        ports:
+            - published: 3903
+              target: 3903
+              protocol: tcp
+
+        volumes:
+            - type: bind
+              source: ./progs
+              target: /progs
+            - type: bind
+              source: ./data
+              target: /home
+
+    grafana:
+        image: grafana/grafana
+        container_name: grafana
+
+        depends_on:
+            - prometheus
+
+        volumes:
+            - type: volume
+              source: grafana_volume
+              target: /var/lib/grafana
+            - type: bind
+              source: ./config
+              target: /etc/alertmanager
+
+        networks:
+            prometheus_network:
+
+        ports:
+            - published: 3000
+              target: 3000
+              protocol: tcp
+
