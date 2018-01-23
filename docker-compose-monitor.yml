@@ -2,7 +2,7 @@ version: '3.4'
 
 
 networks:
-    prometheus_network:
+    monitor_network:
         driver: bridge
 
 
@@ -20,15 +20,12 @@ services:
             "--storage.tsdb.retention=3d",
             "--web.enable-lifecycle"
             ]
-        container_name: promehteus
+        container_name: monitor_promehteus
 
         networks:
-            prometheus_network:
+            monitor_network:
 
-        ports:
-            - published: 9090
-              target: 9090
-              protocol: tcp
+        restart: unless-stopped
 
         volumes:
             - type: volume
@@ -38,41 +35,18 @@ services:
               target: /etc/prometheus
               source: ./config
 
-    node_exporter:
-        image: prom/node-exporter:latest
-        container_name: node_exporter
-
-        networks:
-            prometheus_network:
-
-    cadvisor:
-        image: google/cadvisor:latest
-        container_name: cadvisor
-
-        networks:
-            prometheus_network:
-
-        volumes:
-            - /:/rootfs:ro
-            - /var/run:/var/run:rw
-            - /sys:/sys:ro
-            - /var/lib/docker/:/var/lib/docker:ro
-
     alertmanager:
         image: prom/alertmanager
         command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager", "--log.level=debug"]
-        container_name: alertmanager
+        container_name: monitor_alertmanager
 
         depends_on:
             - prometheus
 
         networks:
-            prometheus_network:
+            monitor_network:
 
-        ports:
-            - published: 9093
-              target: 9093
-              protocol: tcp
+        restart: unless-stopped
 
         volumes:
             - type: bind
@@ -82,10 +56,10 @@ services:
     mtail:
         image: jaymedh/docker-mtail
         command: ["--progs", "/progs", "--logs", "/home/test1.log,/home/test2.log"]
-        container_name: mtail
+        container_name: monitor_mtail
 
         networks:
-            prometheus_network:
+            monitor_network:
 
         ports:
             - published: 3903
@@ -102,10 +76,14 @@ services:
 
     grafana:
         image: grafana/grafana
-        container_name: grafana
+        container_name: monitor_grafana
 
         depends_on:
             - prometheus
+
+        environment:
+            - GF_SECURITY_ADMIN_USER=mong
+            - GF_SECURITY_ADMIN_PASSWORD=passwd
 
         volumes:
             - type: volume
@@ -116,10 +94,34 @@ services:
               target: /etc/alertmanager
 
         networks:
-            prometheus_network:
+            monitor_network:
+
+        restart: unless-stopped
 
         ports:
             - published: 3000
               target: 3000
               protocol: tcp
 
+    nginx:
+        image: library/nginx:alpine
+        command: ["nginx", "-c", "/etc/nginx/nginx.conf"]
+        container_name: monitor_nginx
+
+        networks:
+            monitor_network:
+
+        ports:
+            - published: 9090
+              target: 9090
+              protocol: tcp
+            - published: 9093
+              target: 9093
+              protocol: tcp
+
+        restart: unless-stopped
+
+        volumes:
+            - type: bind
+              source: ./config
+              target: /etc/nginx

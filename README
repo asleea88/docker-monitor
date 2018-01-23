@@ -1,0 +1,5 @@
+# Run monitor service
+$ ./docker-compose.sh $cmd
+
+# Run with exporter
+$ ./docker-compose.sh -f docker-compose-exporter.yml $cmd

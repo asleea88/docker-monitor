@@ -1,2 +1,4 @@
 config/alertmanager.yml
+config/.htpasswd
 **/*.swp
+
