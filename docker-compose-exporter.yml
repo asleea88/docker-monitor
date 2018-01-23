@@ -22,3 +22,23 @@ services:
             - /sys:/sys:ro
             - /var/lib/docker/:/var/lib/docker:ro
 
+    mtail:
+        image: jaymedh/docker-mtail
+        command: ["--progs", "/progs", "--logs", "/home/test1.log,/home/test2.log"]
+        container_name: monitor_mtail
+
+        networks:
+            monitor_network:
+
+        ports:
+            - published: 3903
+              target: 3903
+              protocol: tcp
+
+        volumes:
+            - type: bind
+              source: ./progs
+              target: /progs
+            - type: bind
+              source: ./data
+              target: /home
