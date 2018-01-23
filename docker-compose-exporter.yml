@@ -15,12 +15,23 @@ services:
         networks:
             monitor_network:
 
+        ports:
+            - published: 9100
+              target: 9100
+              protocol: tcp
+
+
     cadvisor:
         image: google/cadvisor:latest
         container_name: monitor_cadvisor
 
         networks:
             monitor_network:
+
+        ports:
+            - published: 8080
+              target: 8080
+              protocol: tcp
 
         volumes:
             - /:/rootfs:ro
