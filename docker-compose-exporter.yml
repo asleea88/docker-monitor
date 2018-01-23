@@ -1,5 +1,11 @@
 version: '3.4'
 
+
+networks:
+    monitor_network:
+        driver: bridge
+
+
 services:
 
     node_exporter:
