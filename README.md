@@ -32,3 +32,9 @@ $ ./docker-compose.sh -f docker-compose-exporter.yml up
 ```
 $ ./docker-compose.sh help
 ```
+
+Reference
+=========
+
+- [prometheus DOC](https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
+- [grafana DOC](http://docs.grafana.org/)
